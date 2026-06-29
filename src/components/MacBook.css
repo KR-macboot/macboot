@@ -1,6 +1,12 @@
 .mb-scene {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* Use the *visible* viewport height so the laptop centers above the iOS Safari
+     toolbars instead of being pushed below them. Falls back to 100vh. */
+  height: 100vh;
+  height: 100svh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -28,7 +34,9 @@
   position: relative;
   width: 480px;
   transform-style: preserve-3d;
-  transform: translateY(60px) rotateX(-14deg) scale(var(--mb-scale, 1));
+  /* --mb-y nudges the hinge down so the laptop's visual mass (taller above the
+     hinge) reads as vertically centered; it shrinks with the laptop on phones. */
+  transform: translateY(var(--mb-y, 56px)) rotateX(-14deg) scale(var(--mb-scale, 1));
 }
 
 /* ---------- Deck (keyboard half), laid flat from the hinge toward the viewer ---------- */
@@ -240,14 +248,17 @@
   justify-content: center;
 }
 
-/* Scale the laptop down to fit narrow screens, and flatten the perspective a
-   little so it doesn't balloon past the viewport edges. */
+/* Scale the laptop down to fit narrow screens, flatten the perspective a little
+   so it doesn't balloon past the edges, and shrink the vertical nudge so it stays
+   centered (and clears the iOS Safari toolbars) instead of sitting too low. */
 @media (max-width: 680px) {
   .mb-scene {
     perspective: 1200px;
+    perspective-origin: 50% 50%;
   }
   .mb {
-    --mb-scale: 0.62;
+    --mb-scale: 0.6;
+    --mb-y: -42px;
   }
 }
 
@@ -256,13 +267,15 @@
     perspective: 1000px;
   }
   .mb {
-    --mb-scale: 0.46;
+    --mb-scale: 0.48;
+    --mb-y: -62px;
   }
 }
 
 @media (max-width: 380px) {
   .mb {
-    --mb-scale: 0.4;
+    --mb-scale: 0.42;
+    --mb-y: -58px;
   }
 }
 
