@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import './OffScreen.css'
 
 // Degrees of front-back tilt (from the armed baseline) that count as "opening the lid".
-const TILT_THRESHOLD = 22
+const TILT_THRESHOLD = 16
 
 // Only offer tilt-to-open on touch devices that expose orientation — desktops
 // define DeviceOrientationEvent but never fire it, so the button would be dead.

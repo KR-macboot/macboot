@@ -1,44 +1,42 @@
 // Synthesizes an approximation of the Mac startup chime with the Web Audio API.
 //
-// No recording is used. Each chord note is an FM "bell" voice (a sine carrier
-// frequency-modulated by a second sine at a slightly inharmonic ratio), which
-// gives the struck, metallic-but-warm bell timbre that plain oscillators can't.
-// The notes form a wide F#/Gb major chord tuned ~30 cents flat (Jim Reekes'
-// design), with a soft attack, a long ring-out, and a lush procedural reverb.
+// No copyrighted recording is used — this is an additive-synthesis reconstruction
+// of the trademarked tone: a wide F#/Gb major chord tuned ~30 cents flat (Jim
+// Reekes' design), with a soft mallet attack, a long bell-like ring-out, and a
+// lush procedural reverb tail.
 //
-// The tunable block below is meant to be tweaked by ear — adjust and reload.
+// The chord is voiced across ~3-4 octaves and weighted toward the low root + its
+// octave (body), with the major third and upper fifths/octaves adding shimmer.
+// The frequencies below are already the ~30-cents-flat values (concert A ≈ 432.4 Hz).
 
-// Each voice: { freq (Hz, already ~30c flat), gain (relative voicing weight) }.
+// Each voice: { freq (Hz, already detuned ~30c flat), gain (relative voicing weight) }
 const CHIME_VOICES = [
   { freq: 90.9, gain: 0.9 }, //  F#2  root (low octave) — body
   { freq: 136.2, gain: 0.5 }, // C#3  perfect fifth
-  { freq: 181.8, gain: 0.85 }, // F#3 root + 1 octave
-  { freq: 229.06, gain: 0.5 }, // A#3 major third
-  { freq: 272.39, gain: 0.5 }, // C#4 perfect fifth
-  { freq: 363.6, gain: 0.4 }, //  F#4 root + 2 octaves
-  { freq: 458.11, gain: 0.28 }, // A#4 major third (upper)
-  { freq: 544.79, gain: 0.26 }, // C#5 perfect fifth (upper)
-  { freq: 727.21, gain: 0.18 }, // F#5 top sparkle
+  { freq: 181.8, gain: 0.8 }, //  F#3  root + 1 octave
+  { freq: 229.06, gain: 0.5 }, // A#3  major third
+  { freq: 272.39, gain: 0.5 }, // C#4  perfect fifth
+  { freq: 363.6, gain: 0.35 }, // F#4  root + 2 octaves
+  { freq: 458.11, gain: 0.25 }, // A#4 major third (upper)
+  { freq: 544.79, gain: 0.25 }, // C#5 perfect fifth (upper)
+  { freq: 727.21, gain: 0.15 }, // F#5 top sparkle
 ]
 
-// ---- Tunable FM-bell parameters (adjust by ear) ----
-const ATTACK = 0.012 // soft mallet attack (s)
-const DECAY = 3.2 // long exponential ring-out (s)
-const MOD_RATIO = 1.5 // modulator:carrier ratio — slightly inharmonic = bell-like
-const MOD_DEPTH_START = 0.9 // initial FM depth as a fraction of carrier freq (bright attack)
-const MOD_DEPTH_END = 0.06 // FM depth at the tail (mellow ring-out)
-const MOD_DECAY = 1.4 // how fast the brightness fades (s)
-const SPARKLE = 0.25 // gain of an octave-up sine partial added for shimmer
-const MASTER_LEVEL = 0.17 // overall per-voice level (headroom; limiter catches peaks)
+// Two oscillators per voice, detuned a few cents apart, create slow beating that
+// reads as warmth/chorus rather than as out-of-tune.
+const DETUNE_CENTS = [-6, 6]
 
+const ATTACK = 0.045 // soft mallet attack (s) — blooms in, no click
+const DECAY = 2.8 // long exponential ring-out (s)
 const GAIN_FLOOR = 0.0001 // -80 dB; exponential ramps can't target literal 0
+const VOICE_LEVEL = 0.08 // per-oscillator base level (headroom for ~18 oscillators)
 
 let cachedIR = null
 let cachedIRRate = 0
 
 // Build a stereo reverb impulse response procedurally: exponentially-decaying
 // white noise, decorrelated per channel for a wide tail. Cached per sample rate.
-function getReverbIR(ctx, seconds = 2.4, decay = 2.6) {
+function getReverbIR(ctx, seconds = 2.2, decay = 3) {
   if (cachedIR && cachedIRRate === ctx.sampleRate) return cachedIR
   const rate = ctx.sampleRate
   const length = Math.max(1, Math.floor(rate * seconds))
@@ -54,69 +52,23 @@ function getReverbIR(ctx, seconds = 2.4, decay = 2.6) {
   return ir
 }
 
-// One FM-bell voice: carrier (sine) FM'd by a modulator (sine), shaped by a
-// soft-attack / long-decay amplitude envelope, plus a quiet octave sparkle.
-function spawnVoice(ctx, dest, freq, weight, start) {
-  const peak = weight * MASTER_LEVEL
-
-  // Amplitude envelope.
-  const amp = ctx.createGain()
-  amp.gain.setValueAtTime(GAIN_FLOOR, start)
-  amp.gain.linearRampToValueAtTime(peak, start + ATTACK)
-  amp.gain.exponentialRampToValueAtTime(GAIN_FLOOR, start + DECAY)
-  amp.connect(dest)
-
-  // Carrier.
-  const carrier = ctx.createOscillator()
-  carrier.type = 'sine'
-  carrier.frequency.value = freq
-  carrier.connect(amp)
-
-  // Modulator → modGain (FM depth, in Hz) → carrier.frequency.
-  const mod = ctx.createOscillator()
-  mod.type = 'sine'
-  mod.frequency.value = freq * MOD_RATIO
-  const modGain = ctx.createGain()
-  modGain.gain.setValueAtTime(freq * MOD_DEPTH_START, start)
-  modGain.gain.exponentialRampToValueAtTime(freq * MOD_DEPTH_END, start + MOD_DECAY)
-  mod.connect(modGain)
-  modGain.connect(carrier.frequency)
-
-  // Quiet octave-up sine for shimmer.
-  const sparkle = ctx.createOscillator()
-  sparkle.type = 'sine'
-  sparkle.frequency.value = freq * 2
-  const sparkleGain = ctx.createGain()
-  sparkleGain.gain.value = SPARKLE
-  sparkle.connect(sparkleGain)
-  sparkleGain.connect(amp)
-
-  const stop = start + DECAY + 0.15
-  carrier.start(start)
-  mod.start(start)
-  sparkle.start(start)
-  carrier.stop(stop)
-  mod.stop(stop)
-  sparkle.stop(stop)
-}
-
 // Play the chime once on the given (running) AudioContext.
 // Returns the approximate total audible duration in seconds.
 export function playChime(ctx) {
   const t0 = ctx.currentTime + 0.03 // tiny lookahead so nothing is scheduled in the past
 
-  // Master bus with a soft overall envelope.
+  // Master bus with a soft overall envelope (soft in, hold, long exponential tail).
   const master = ctx.createGain()
   master.gain.setValueAtTime(GAIN_FLOOR, t0)
   master.gain.linearRampToValueAtTime(1.0, t0 + 0.03)
-  master.gain.setValueAtTime(1.0, t0 + 2.0)
-  master.gain.exponentialRampToValueAtTime(GAIN_FLOOR, t0 + 4.2)
+  master.gain.setValueAtTime(1.0, t0 + 1.8) // anchor before the final fade
+  master.gain.exponentialRampToValueAtTime(GAIN_FLOOR, t0 + 4.0)
 
-  // Gentle low-pass keeps the FM brightness from getting harsh.
+  // Gentle low-pass rolls off the harsh upper partials → warmth.
   const tone = ctx.createBiquadFilter()
   tone.type = 'lowpass'
-  tone.frequency.value = 6500
-  tone.Q.value = 0.4
+  tone.frequency.value = 5200
+  tone.Q.value = 0.5
 
   // Brick-wall-ish safety limiter so summed voices + reverb never clip.
   const limiter = ctx.createDynamicsCompressor()
@@ -130,7 +82,7 @@ export function playChime(ctx) {
   const convolver = ctx.createConvolver()
   convolver.buffer = getReverbIR(ctx)
   const wet = ctx.createGain()
-  wet.gain.value = 0.6
+  wet.gain.value = 0.5
   const dry = ctx.createGain()
   dry.gain.value = 0.8
 
@@ -144,10 +96,28 @@ export function playChime(ctx) {
 
   CHIME_VOICES.forEach((voice, idx) => {
     // Stagger note onsets a touch so the chord blooms instead of thudding.
-    spawnVoice(ctx, master, voice.freq, voice.gain, t0 + idx * 0.007)
+    const start = t0 + idx * 0.008
+    const peak = voice.gain * VOICE_LEVEL
+
+    // Click-free bell envelope: seed → linear attack → long exponential ring-out.
+    const env = ctx.createGain()
+    env.gain.setValueAtTime(GAIN_FLOOR, start)
+    env.gain.linearRampToValueAtTime(peak, start + ATTACK)
+    env.gain.exponentialRampToValueAtTime(GAIN_FLOOR, start + ATTACK + DECAY)
+    env.connect(master)
+
+    DETUNE_CENTS.forEach((cents) => {
+      const osc = ctx.createOscillator()
+      osc.type = 'triangle' // warm, bell-ish; richer than a pure sine
+      osc.frequency.value = voice.freq
+      osc.detune.value = cents
+      osc.connect(env)
+      osc.start(start)
+      osc.stop(start + ATTACK + DECAY + 0.2) // free the node once it's silent
+    })
   })
 
-  return 4.2
+  return 4.0
 }
 
 // Lazily create (once) and resume an AudioContext. MUST be called from inside a

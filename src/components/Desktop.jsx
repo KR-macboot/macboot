@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import AppleLogo from './AppleLogo'
+import Wallpaper from './Wallpaper'
 import { DOCK_APPS, Trash } from './DockIcons'
 import './Desktop.css'
 
@@ -88,7 +89,7 @@ export default function Desktop({ onRestart, onShutDown }) {
 
   return (
     <div className="desktop">
-      <div className="desktop__wallpaper" />
+      <Wallpaper />
 
       {/* Menu bar */}
       <div className="menubar">
