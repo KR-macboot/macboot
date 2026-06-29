@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import OffScreen from './components/OffScreen'
 import BootSequence from './components/BootSequence'
 import Desktop from './components/Desktop'
@@ -13,11 +13,15 @@ export default function App() {
   const [muted, setMuted] = useState(false)
   const audioCtxRef = useRef(null)
   const mutedRef = useRef(false)
+  const restartTimerRef = useRef(0)
 
   // Start the boot: play the chime (unless muted) and switch to the boot screen.
   // Must run from a user gesture the first time so the audio context unlocks; on
   // Restart the context is already running, so the chime replays without a gesture.
   const boot = useCallback(() => {
+    // Cancel any queued Restart so a manual power-on during the restart gap can't
+    // make boot() (and the chime) fire twice.
+    window.clearTimeout(restartTimerRef.current)
     if (!mutedRef.current) {
       const ctx = getAudioContext(audioCtxRef)
       if (ctx) {
@@ -43,8 +47,11 @@ export default function App() {
 
   const handleRestart = useCallback(() => {
     setPhase(PHASE.OFF)
-    window.setTimeout(boot, RESTART_GAP_MS)
+    restartTimerRef.current = window.setTimeout(boot, RESTART_GAP_MS)
   }, [boot])
+
+  // Don't leave a queued Restart running after the app unmounts.
+  useEffect(() => () => window.clearTimeout(restartTimerRef.current), [])
 
   const toggleMute = useCallback(() => {
     setMuted((m) => {

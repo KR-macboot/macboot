@@ -22,6 +22,17 @@ export default function BootSequence({ onComplete }) {
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
+    // Respect reduced motion: skip the long animated fill and hand off quickly,
+    // showing the logo and a full bar with only a brief hold.
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reduceMotion) {
+      setLogoIn(true)
+      setBarVisible(true)
+      setProgress(100)
+      const t = setTimeout(() => onComplete?.(), 600)
+      return () => clearTimeout(t)
+    }
+
     const timers = []
     let fillRaf = 0
     let startTs = null

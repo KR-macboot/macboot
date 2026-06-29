@@ -308,7 +308,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .desktop {
+  .desktop,
+  .apple-menu,
+  .desktop__tip {
     animation: none;
   }
   .dock__app,
