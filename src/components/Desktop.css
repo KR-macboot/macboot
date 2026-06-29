@@ -303,6 +303,51 @@
   transform: translateX(-50%) scale(1);
 }
 
+/* ---------- Phone layout ---------- */
+@media (max-width: 620px) {
+  .menubar {
+    padding: 0 8px;
+    font-size: 12.5px;
+  }
+  /* The app menus don't fit a phone width — keep Apple + app name + status. */
+  .menubar__menu {
+    display: none;
+  }
+  .menubar__right {
+    gap: 9px;
+    padding-right: 2px;
+  }
+  .menubar__clock {
+    font-size: 12px;
+  }
+
+  .desktop__tip {
+    font-size: 12px;
+    max-width: 84vw;
+    text-align: center;
+    padding: 8px 14px;
+  }
+
+  .dock {
+    bottom: 6px;
+  }
+  .dock__panel {
+    gap: 2px;
+    padding: 4px 6px;
+    border-radius: 16px;
+  }
+  .dock__tile {
+    width: 27px;
+    height: 27px;
+  }
+  .dock__app:hover {
+    transform: none; /* no magnify on touch */
+  }
+  .dock__sep {
+    margin: 3px 2px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .desktop,
   .apple-menu,

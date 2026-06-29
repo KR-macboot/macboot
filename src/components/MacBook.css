@@ -240,9 +240,29 @@
   justify-content: center;
 }
 
-@media (max-width: 560px) {
+/* Scale the laptop down to fit narrow screens, and flatten the perspective a
+   little so it doesn't balloon past the viewport edges. */
+@media (max-width: 680px) {
+  .mb-scene {
+    perspective: 1200px;
+  }
   .mb {
     --mb-scale: 0.62;
+  }
+}
+
+@media (max-width: 480px) {
+  .mb-scene {
+    perspective: 1000px;
+  }
+  .mb {
+    --mb-scale: 0.46;
+  }
+}
+
+@media (max-width: 380px) {
+  .mb {
+    --mb-scale: 0.4;
   }
 }
 
