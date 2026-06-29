@@ -211,16 +211,57 @@ const Trash = () => (
   </Svg>
 )
 
+const Notes = () => (
+  <Svg>
+    <defs>
+      <linearGradient id="nt-bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#fff3b0" />
+        <stop offset="1" stopColor="#ffd83d" />
+      </linearGradient>
+    </defs>
+    <rect x="3" y="3" width="58" height="58" rx="14" fill="url(#nt-bg)" />
+    <path d="M3 19 V17 A14 14 0 0 1 17 3 H47 A14 14 0 0 1 61 17 V19 Z" fill="#f4c23c" />
+    <g stroke="#c79a2e" strokeWidth="2.6" strokeLinecap="round">
+      <path d="M16 30 H48" />
+      <path d="M16 38 H48" />
+      <path d="M16 46 H40" />
+    </g>
+  </Svg>
+)
+
+const Calculator = () => (
+  <Svg>
+    <defs>
+      <linearGradient id="calc-bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#3c3c3f" />
+        <stop offset="1" stopColor="#1b1b1d" />
+      </linearGradient>
+    </defs>
+    <rect x="3" y="3" width="58" height="58" rx="14" fill="url(#calc-bg)" />
+    <rect x="12" y="11" width="40" height="10" rx="2" fill="#0d0d0f" />
+    <g fill="#6a6a6e">
+      {[0, 1, 2].map((c) =>
+        [0, 1, 2].map((r) => (
+          <rect key={`${c}-${r}`} x={13 + c * 10} y={26 + r * 9} width="7" height="6" rx="1.5" />
+        )),
+      )}
+    </g>
+    <rect x="43" y="26" width="7" height="24" rx="2" fill="#ff9f0a" />
+  </Svg>
+)
+
 // Apps shown in the Dock (Trash is rendered separately, after a divider).
 export const DOCK_APPS = [
-  { name: 'Finder', Icon: Finder, running: true },
+  { name: 'Finder', Icon: Finder },
   { name: 'Safari', Icon: Safari },
   { name: 'Messages', Icon: Messages },
   { name: 'Mail', Icon: Mail },
   { name: 'Maps', Icon: Maps },
   { name: 'Photos', Icon: Photos },
   { name: 'Music', Icon: Music },
+  { name: 'Notes', Icon: Notes },
   { name: 'Calendar', Icon: Calendar },
+  { name: 'Calculator', Icon: Calculator },
   { name: 'System Settings', Icon: Settings },
   { name: 'Terminal', Icon: Terminal },
 ]

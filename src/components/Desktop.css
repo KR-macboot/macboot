@@ -42,7 +42,7 @@
   backdrop-filter: blur(22px) saturate(1.3);
   -webkit-backdrop-filter: blur(22px) saturate(1.3);
   box-shadow: inset 0 -0.5px 0 rgba(255, 255, 255, 0.08);
-  z-index: 30;
+  z-index: 1000;
 }
 
 .menubar__left,
@@ -220,7 +220,7 @@
   bottom: 7px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 20;
+  z-index: 800;
   max-width: 100vw;
 }
 
@@ -303,8 +303,353 @@
   transform: translateX(-50%) scale(1);
 }
 
+/* ---------- App windows ---------- */
+.win {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(0, 0, 0, 0.18);
+  min-width: 220px;
+}
+
+.win__bar {
+  position: relative;
+  height: 38px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(#f6f6f7, #ececee);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.12);
+  cursor: default;
+  user-select: none;
+}
+
+.win__lights {
+  position: absolute;
+  left: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.win__light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.win__light--close {
+  background: #ff5f57;
+}
+.win__light--min {
+  background: #febc2e;
+}
+.win__light--max {
+  background: #28c840;
+}
+
+.win__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a3a3c;
+}
+
+.win__body {
+  flex: 1 1 auto;
+  overflow: auto;
+  background: #fff;
+  color: #1d1d1f;
+}
+
+/* Calculator */
+.calc {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #2b2b2e;
+}
+.calc__display {
+  flex: 0 0 auto;
+  padding: 18px 16px 8px;
+  text-align: right;
+  font-size: 40px;
+  font-weight: 300;
+  color: #fff;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.calc__keys {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: #3a3a3c;
+}
+.calc__key {
+  border: 0;
+  font-size: 20px;
+  color: #fff;
+  background: #4a4a4e;
+  cursor: pointer;
+}
+.calc__key:active {
+  filter: brightness(1.3);
+}
+.calc__key--fn {
+  background: #6a6a6e;
+  color: #fff;
+}
+.calc__key--op {
+  background: #ff9f0a;
+}
+.calc__key--zero {
+  grid-column: span 2;
+}
+
+/* Notes */
+.notes {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  resize: none;
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1d1d1f;
+  background: #fffdf6;
+  font-family: inherit;
+  outline: none;
+}
+
+/* Terminal */
+.term {
+  height: 100%;
+  padding: 10px 12px;
+  background: #1c1c1e;
+  color: #e6e6e6;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 12.5px;
+  line-height: 1.5;
+  cursor: text;
+}
+.term__line {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.term__prompt {
+  display: flex;
+  gap: 6px;
+}
+.term__arrow {
+  color: #36d35f;
+  white-space: pre;
+}
+.term__input {
+  flex: 1 1 auto;
+  border: 0;
+  background: transparent;
+  color: #e6e6e6;
+  font: inherit;
+  outline: none;
+}
+
+/* Calendar */
+.cal {
+  padding: 12px 14px;
+  height: 100%;
+}
+.cal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.cal__title {
+  font-size: 15px;
+  font-weight: 700;
+}
+.cal__nav {
+  border: 0;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  color: #ff453a;
+  cursor: pointer;
+  padding: 0 8px;
+}
+.cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+.cal__dow {
+  font-size: 11px;
+  font-weight: 600;
+  color: #8a8a8e;
+  padding-bottom: 4px;
+}
+.cal__cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  border-radius: 50%;
+}
+.cal__cell--today {
+  background: #ff453a;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Finder */
+.finder {
+  display: flex;
+  height: 100%;
+}
+.finder__side {
+  flex: 0 0 150px;
+  background: #f2f2f4;
+  border-right: 0.5px solid rgba(0, 0, 0, 0.1);
+  padding: 10px 8px;
+  overflow: auto;
+}
+.finder__group {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9a9a9e;
+  padding: 4px 8px;
+}
+.finder__sideitem {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #1d1d1f;
+  cursor: pointer;
+  text-align: left;
+}
+.finder__sideitem.is-active {
+  background: #d6d6da;
+}
+.finder__folder {
+  font-size: 14px;
+}
+.finder__main {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 84px);
+  gap: 10px;
+  padding: 16px;
+  align-content: start;
+}
+.finder__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.finder__icon {
+  font-size: 38px;
+}
+.finder__name {
+  font-size: 12px;
+}
+
+/* Safari */
+.safari {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+.safari__bar {
+  flex: 0 0 auto;
+  padding: 8px;
+  background: #ececee;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+}
+.safari__url {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  color: #8a8a8e;
+  background: #fff;
+  border-radius: 7px;
+  padding: 5px;
+}
+.safari__start {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 14px;
+  padding: 20px;
+  align-content: start;
+}
+.safari__bm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #1d1d1f;
+  font-size: 12px;
+}
+.safari__bm-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: #f0f0f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* Placeholder */
+.ph {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #1d1d1f;
+  padding: 20px;
+  text-align: center;
+}
+.ph__icon {
+  font-size: 56px;
+}
+.ph__name {
+  font-size: 18px;
+  font-weight: 600;
+}
+.ph__note {
+  font-size: 13px;
+  color: #8a8a8e;
+}
+
 /* ---------- Phone layout ---------- */
 @media (max-width: 620px) {
+  .win {
+    max-width: 94vw;
+    max-height: 66vh;
+    left: 3vw !important;
+  }
   .menubar {
     padding: 0 8px;
     font-size: 12.5px;

@@ -34,9 +34,10 @@
   position: relative;
   width: 480px;
   transform-style: preserve-3d;
-  /* --mb-y nudges the hinge down so the laptop's visual mass (taller above the
-     hinge) reads as vertically centered; it shrinks with the laptop on phones. */
-  transform: translateY(var(--mb-y, 56px)) rotateX(-14deg) scale(var(--mb-scale, 1));
+  /* --mb-cx/--mb-cy are set by JS to dead-center the laptop's measured bounding
+     box; the leading translate is unscaled (viewport px) because scale is inner. */
+  transform: translate(var(--mb-cx, 0px), var(--mb-cy, 0px)) rotateX(-14deg)
+    scale(var(--mb-scale, 1));
 }
 
 /* ---------- Deck (keyboard half), laid flat from the hinge toward the viewer ---------- */
@@ -258,7 +259,6 @@
   }
   .mb {
     --mb-scale: 0.6;
-    --mb-y: -42px;
   }
 }
 
@@ -268,14 +268,12 @@
   }
   .mb {
     --mb-scale: 0.48;
-    --mb-y: -62px;
   }
 }
 
 @media (max-width: 380px) {
   .mb {
     --mb-scale: 0.42;
-    --mb-y: -58px;
   }
 }
 

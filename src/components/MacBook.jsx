@@ -19,6 +19,7 @@ const KEY_ROWS = [13, 13, 13, 12, 11, 8]
 // on-screen lid is the cross-device equivalent.
 export default function MacBook({ onPrepareAudio, onChime, onOpened, muted, onToggleMute }) {
   const sceneRef = useRef(null)
+  const mbRef = useRef(null)
   const dragStartRef = useRef(null)
   const wheelAccRef = useRef(0)
   const baselineRef = useRef(null)
@@ -29,6 +30,43 @@ export default function MacBook({ onPrepareAudio, onChime, onOpened, muted, onTo
 
   useEffect(() => {
     sceneRef.current?.focus()
+  }, [])
+
+  // Dead-center the laptop by measuring its actual on-screen bounding box (deck +
+  // lid) and nudging it to the visible-viewport center. Robust to any device,
+  // scale, and the iOS Safari toolbars (via visualViewport). Recomputed on resize.
+  useEffect(() => {
+    const el = mbRef.current
+    if (!el) return undefined
+    const recenter = () => {
+      const deck = el.querySelector('.mb__deck')
+      const lid = el.querySelector('.mb__lid')
+      if (!deck || !lid) return
+      const d = deck.getBoundingClientRect()
+      const l = lid.getBoundingClientRect()
+      const curCx = (Math.min(d.left, l.left) + Math.max(d.right, l.right)) / 2
+      const curCy = (Math.min(d.top, l.top) + Math.max(d.bottom, l.bottom)) / 2
+      const vv = window.visualViewport
+      const vpCx = (vv ? vv.offsetLeft + vv.width / 2 : window.innerWidth / 2)
+      const vpCy = (vv ? vv.offsetTop + vv.height / 2 : window.innerHeight / 2)
+      const prevX = parseFloat(el.style.getPropertyValue('--mb-cx')) || 0
+      const prevY = parseFloat(el.style.getPropertyValue('--mb-cy')) || 0
+      el.style.setProperty('--mb-cx', `${Math.round(prevX + vpCx - curCx)}px`)
+      el.style.setProperty('--mb-cy', `${Math.round(prevY + vpCy - curCy)}px`)
+    }
+    const raf = requestAnimationFrame(recenter)
+    const t = setTimeout(recenter, 90)
+    const vv = window.visualViewport
+    window.addEventListener('resize', recenter)
+    vv?.addEventListener('resize', recenter)
+    vv?.addEventListener('scroll', recenter)
+    return () => {
+      cancelAnimationFrame(raf)
+      clearTimeout(t)
+      window.removeEventListener('resize', recenter)
+      vv?.removeEventListener('resize', recenter)
+      vv?.removeEventListener('scroll', recenter)
+    }
   }, [])
 
   // The open sequence: lift the lid, power on + chime mid-swing, then hand off.
@@ -118,7 +156,7 @@ export default function MacBook({ onPrepareAudio, onChime, onOpened, muted, onTo
       onClick={open}
       onKeyDown={onKeyDown}
     >
-      <div className={`mb${isOpen ? ' is-open' : ''}${lit ? ' is-lit' : ''}`}>
+      <div className={`mb${isOpen ? ' is-open' : ''}${lit ? ' is-lit' : ''}`} ref={mbRef}>
         <div className="mb__deck">
           <div className="mb__keyboard">
             {KEY_ROWS.map((count, r) => (

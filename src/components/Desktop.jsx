@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import AppleLogo from './AppleLogo'
 import Wallpaper from './Wallpaper'
+import Window from './Window'
+import { appConfig } from './DesktopApps'
 import { DOCK_APPS, Trash } from './DockIcons'
 import './Desktop.css'
 
@@ -67,6 +69,30 @@ export default function Desktop({ onRestart, onShutDown }) {
   const [tip, setTip] = useState(true)
   const menuRef = useRef(null)
   const now = useClock()
+
+  // --- Window manager: open/focus/close app windows from the Dock ---
+  const [wins, setWins] = useState([])
+  const idRef = useRef(0)
+  const zRef = useRef(10)
+
+  const focusWin = useCallback((id) => {
+    setWins((ws) => ws.map((w) => (w.id === id ? { ...w, z: ++zRef.current } : w)))
+  }, [])
+  const closeWin = useCallback((id) => {
+    setWins((ws) => ws.filter((w) => w.id !== id))
+  }, [])
+  const openApp = useCallback((app) => {
+    setWins((ws) => {
+      const existing = ws.find((w) => w.app === app)
+      if (existing) return ws.map((w) => (w.id === existing.id ? { ...w, z: ++zRef.current } : w))
+      const offset = (ws.length % 6) * 26
+      return [
+        ...ws,
+        { id: ++idRef.current, app, z: ++zRef.current, x: 120 + offset, y: 64 + offset },
+      ]
+    })
+  }, [])
+  const openApps = new Set(wins.map((w) => w.app))
 
   useEffect(() => {
     if (!menuOpen) return undefined
@@ -166,24 +192,56 @@ export default function Desktop({ onRestart, onShutDown }) {
         </div>
       )}
 
+      {/* App windows */}
+      {wins.map((w) => {
+        const cfg = appConfig(w.app)
+        return (
+          <Window
+            key={w.id}
+            title={cfg.title}
+            z={w.z}
+            initialX={w.x}
+            initialY={w.y}
+            width={cfg.w}
+            height={cfg.h}
+            onClose={() => closeWin(w.id)}
+            onFocus={() => focusWin(w.id)}
+          >
+            {cfg.render()}
+          </Window>
+        )
+      })}
+
       {/* Dock */}
       <div className="dock">
         <div className="dock__panel">
-          {DOCK_APPS.map(({ name, Icon, running }) => (
-            <button type="button" className="dock__app" key={name} aria-label={name}>
+          {DOCK_APPS.map(({ name, Icon }) => (
+            <button
+              type="button"
+              className="dock__app"
+              key={name}
+              aria-label={name}
+              onClick={() => openApp(name)}
+            >
               <span className="dock__tooltip">{name}</span>
               <span className="dock__tile">
                 <Icon />
               </span>
-              {running && <span className="dock__dot" aria-hidden="true" />}
+              {openApps.has(name) && <span className="dock__dot" aria-hidden="true" />}
             </button>
           ))}
           <span className="dock__sep" aria-hidden="true" />
-          <button type="button" className="dock__app" aria-label="Trash">
+          <button
+            type="button"
+            className="dock__app"
+            aria-label="Trash"
+            onClick={() => openApp('Trash')}
+          >
             <span className="dock__tooltip">Trash</span>
             <span className="dock__tile">
               <Trash />
             </span>
+            {openApps.has('Trash') && <span className="dock__dot" aria-hidden="true" />}
           </button>
         </div>
       </div>
