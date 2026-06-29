@@ -7,6 +7,8 @@
   justify-content: center;
   gap: 14px;
   background: #000;
+  /* Capture vertical drag/swipe gestures instead of letting them scroll the page. */
+  touch-action: none;
   animation: off-fade-in 0.5s ease both;
 }
 
