@@ -66,6 +66,59 @@
   color: rgba(255, 255, 255, 0.4);
 }
 
+.off__tilt {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+}
+
+.off__tilt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.12s ease, border-color 0.2s ease;
+}
+
+.off__tilt-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.off__tilt-btn:active {
+  transform: scale(0.96);
+}
+
+.off__tilt-armed {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.66);
+  animation: tilt-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes tilt-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.off__tilt-error {
+  font-size: 12px;
+  color: rgba(255, 160, 160, 0.8);
+}
+
 .off__mute {
   position: fixed;
   bottom: 22px;
@@ -93,7 +146,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .off {
+  .off,
+  .off__tilt-armed {
     animation: none;
   }
 }

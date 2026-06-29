@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import OffScreen from './components/OffScreen'
 import BootSequence from './components/BootSequence'
 import Desktop from './components/Desktop'
-import { getAudioContext, playStartupSound } from './audio/chime'
+import { getAudioContext, playChime } from './audio/chime'
 import './App.css'
 
 const PHASE = { OFF: 'off', BOOTING: 'booting', DESKTOP: 'desktop' }
@@ -15,9 +15,15 @@ export default function App() {
   const mutedRef = useRef(false)
   const restartTimerRef = useRef(0)
 
+  // Unlock the AudioContext from a user gesture. Calling this on the "open by
+  // tilt" tap means a later tilt-triggered boot can still make sound, since the
+  // context is already running by then (the autoplay policy only needs one
+  // gesture to unlock it).
+  const armAudio = useCallback(() => {
+    if (!mutedRef.current) getAudioContext(audioCtxRef)
+  }, [])
+
   // Start the boot: play the chime (unless muted) and switch to the boot screen.
-  // Must run from a user gesture the first time so the audio context unlocks; on
-  // Restart the context is already running, so the chime replays without a gesture.
   const boot = useCallback(() => {
     // Cancel any queued Restart so a manual power-on during the restart gap can't
     // make boot() (and the chime) fire twice.
@@ -27,7 +33,7 @@ export default function App() {
       if (ctx) {
         const fire = () => {
           try {
-            playStartupSound(ctx)
+            playChime(ctx)
           } catch {
             /* audio unsupported — boot visually anyway */
           }
@@ -40,7 +46,6 @@ export default function App() {
     setPhase(PHASE.BOOTING)
   }, [])
 
-  // OffScreen only renders while phase is OFF, so a power-on can only mean "boot".
   const handleBootComplete = useCallback(() => setPhase(PHASE.DESKTOP), [])
 
   const handleShutDown = useCallback(() => setPhase(PHASE.OFF), [])
@@ -63,7 +68,12 @@ export default function App() {
   return (
     <div className="app">
       {phase === PHASE.OFF && (
-        <OffScreen onPowerOn={boot} muted={muted} onToggleMute={toggleMute} />
+        <OffScreen
+          onPowerOn={boot}
+          onPrepareAudio={armAudio}
+          muted={muted}
+          onToggleMute={toggleMute}
+        />
       )}
       {phase === PHASE.BOOTING && <BootSequence onComplete={handleBootComplete} />}
       {phase === PHASE.DESKTOP && (

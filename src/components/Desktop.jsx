@@ -1,26 +1,41 @@
 import { useEffect, useRef, useState } from 'react'
 import AppleLogo from './AppleLogo'
+import { DOCK_APPS, Trash } from './DockIcons'
 import './Desktop.css'
 
-// Dock apps — rounded-square gradient tiles with an emoji glyph, magnified on hover.
-const DOCK_APPS = [
-  { name: 'Finder', emoji: '\u{1F4BB}', bg: 'linear-gradient(160deg,#3aa0ff,#1f6fd6)', running: true },
-  { name: 'Launchpad', emoji: '\u{1F680}', bg: 'linear-gradient(160deg,#9aa3ad,#5c656e)' },
-  { name: 'Safari', emoji: '\u{1F9ED}', bg: 'linear-gradient(160deg,#e8f3ff,#bcd9ff)' },
-  { name: 'Messages', emoji: '\u{1F4AC}', bg: 'linear-gradient(160deg,#5ff07a,#1fb84a)' },
-  { name: 'Mail', emoji: '✉️', bg: 'linear-gradient(160deg,#3aa0ff,#1f6fd6)' },
-  { name: 'Maps', emoji: '\u{1F5FA}️', bg: 'linear-gradient(160deg,#a8e6a0,#5cc16a)' },
-  { name: 'Photos', emoji: '\u{1F308}', bg: 'linear-gradient(160deg,#ffffff,#f0f0f3)' },
-  { name: 'Music', emoji: '\u{1F3B5}', bg: 'linear-gradient(160deg,#fb5c74,#e21b4c)' },
-  { name: 'Calendar', emoji: '\u{1F4C5}', bg: 'linear-gradient(160deg,#ffffff,#eef0f3)' },
-  { name: 'Notes', emoji: '\u{1F4DD}', bg: 'linear-gradient(160deg,#fff1a8,#ffd84d)' },
-  { name: 'Settings', emoji: '⚙️', bg: 'linear-gradient(160deg,#c2c8d0,#878f99)' },
-]
+// --- Menu-bar status icons (small, monochrome, inherit menu-bar text color) ---
+const ControlCenter = () => (
+  <svg width="15" height="15" viewBox="0 0 16 16" className="menubar__icon" aria-hidden="true">
+    <rect x="2" y="3" width="12" height="4.3" rx="2.15" fill="none" stroke="currentColor" strokeWidth="1.1" />
+    <circle cx="5" cy="5.15" r="1.25" fill="currentColor" />
+    <rect x="2" y="8.7" width="12" height="4.3" rx="2.15" fill="none" stroke="currentColor" strokeWidth="1.1" />
+    <circle cx="11" cy="10.85" r="1.25" fill="currentColor" />
+  </svg>
+)
+const Wifi = () => (
+  <svg width="16" height="13" viewBox="0 0 18 13" className="menubar__icon" aria-hidden="true">
+    <circle cx="9" cy="10.6" r="1.4" fill="currentColor" />
+    <path d="M3.4 5.6 a8 8 0 0 1 11.2 0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <path d="M5.7 7.9 a4.8 4.8 0 0 1 6.6 0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+)
+const Battery = () => (
+  <svg width="27" height="13" viewBox="0 0 28 13" className="menubar__icon" aria-hidden="true">
+    <rect x="1" y="1.6" width="22" height="9.8" rx="3" fill="none" stroke="currentColor" strokeWidth="1.1" opacity="0.55" />
+    <rect x="2.6" y="3.2" width="15" height="6.6" rx="1.6" fill="currentColor" />
+    <rect x="24.4" y="4.6" width="2" height="3.8" rx="1" fill="currentColor" opacity="0.55" />
+  </svg>
+)
+const Search = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" className="menubar__icon" aria-hidden="true">
+    <circle cx="7" cy="7" r="4.3" fill="none" stroke="currentColor" strokeWidth="1.3" />
+    <path d="M10.3 10.3 L14 14" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+  </svg>
+)
 
 function useClock() {
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
-    // Tick at the top of each minute, then every minute after.
     let interval
     const align = setTimeout(
       () => {
@@ -52,9 +67,8 @@ export default function Desktop({ onRestart, onShutDown }) {
   const menuRef = useRef(null)
   const now = useClock()
 
-  // Close the Apple menu on outside click or Escape.
   useEffect(() => {
-    if (!menuOpen) return
+    if (!menuOpen) return undefined
     const onDown = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false)
     }
@@ -67,7 +81,6 @@ export default function Desktop({ onRestart, onShutDown }) {
     }
   }, [menuOpen])
 
-  // Auto-dismiss the first-run tip.
   useEffect(() => {
     const t = setTimeout(() => setTip(false), 6000)
     return () => clearTimeout(t)
@@ -75,6 +88,8 @@ export default function Desktop({ onRestart, onShutDown }) {
 
   return (
     <div className="desktop">
+      <div className="desktop__wallpaper" />
+
       {/* Menu bar */}
       <div className="menubar">
         <div className="menubar__left">
@@ -87,7 +102,7 @@ export default function Desktop({ onRestart, onShutDown }) {
               aria-expanded={menuOpen}
               aria-label="Apple menu"
             >
-              <AppleLogo className="menubar__logo" color="#1d1d1f" title="Apple menu" />
+              <AppleLogo className="menubar__logo" color="#f5f5f7" title="Apple menu" />
             </button>
             {menuOpen && (
               <div className="apple-menu" role="menu">
@@ -127,14 +142,17 @@ export default function Desktop({ onRestart, onShutDown }) {
           <span className="menubar__item menubar__menu">Help</span>
         </div>
         <div className="menubar__right">
-          <span className="menubar__status" aria-hidden="true">
-            &#x1F50B;
+          <span className="menubar__status">
+            <Battery />
           </span>
-          <span className="menubar__status" aria-hidden="true">
-            &#x1F4F6;
+          <span className="menubar__status">
+            <Wifi />
           </span>
-          <span className="menubar__status" aria-hidden="true">
-            &#x1F50D;
+          <span className="menubar__status">
+            <Search />
+          </span>
+          <span className="menubar__status">
+            <ControlCenter />
           </span>
           <span className="menubar__clock">{formatClock(now)}</span>
         </div>
@@ -150,20 +168,20 @@ export default function Desktop({ onRestart, onShutDown }) {
       {/* Dock */}
       <div className="dock">
         <div className="dock__panel">
-          {DOCK_APPS.map((app) => (
-            <button type="button" className="dock__app" key={app.name} aria-label={app.name}>
-              <span className="dock__tooltip">{app.name}</span>
-              <span className="dock__icon" style={{ background: app.bg }} aria-hidden="true">
-                {app.emoji}
+          {DOCK_APPS.map(({ name, Icon, running }) => (
+            <button type="button" className="dock__app" key={name} aria-label={name}>
+              <span className="dock__tooltip">{name}</span>
+              <span className="dock__tile">
+                <Icon />
               </span>
-              {app.running && <span className="dock__dot" aria-hidden="true" />}
+              {running && <span className="dock__dot" aria-hidden="true" />}
             </button>
           ))}
           <span className="dock__sep" aria-hidden="true" />
           <button type="button" className="dock__app" aria-label="Trash">
             <span className="dock__tooltip">Trash</span>
-            <span className="dock__icon dock__icon--trash" aria-hidden="true">
-              {'\u{1F5D1}️'}
+            <span className="dock__tile">
+              <Trash />
             </span>
           </button>
         </div>
