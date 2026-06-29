@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import AppleLogo from './AppleLogo'
-import Wallpaper from './Wallpaper'
+import Wallpaper, { WALLPAPERS } from './Wallpaper'
 import Window from './Window'
 import { appConfig } from './DesktopApps'
 import { DOCK_APPS, Trash } from './DockIcons'
@@ -62,15 +62,74 @@ function formatClock(d) {
   return `${day} ${date}  ${time}`
 }
 
+// Control Center popover: working wallpaper switcher + brightness, plus a few
+// decorative toggle tiles.
+function ControlCenterPanel({ wallpaper, setWallpaper, brightness, setBrightness }) {
+  const [t, setT] = useState({ wifi: true, bt: true, dnd: false })
+  const flip = (k) => setT((s) => ({ ...s, [k]: !s[k] }))
+  return (
+    <div className="cc" role="dialog" aria-label="Control Center">
+      <div className="cc__grid">
+        <button type="button" className={`cc__tile${t.wifi ? ' is-on' : ''}`} onClick={() => flip('wifi')}>
+          <span className="cc__tile-icon">&#x1F4F6;</span> Wi-Fi
+        </button>
+        <button type="button" className={`cc__tile${t.bt ? ' is-on' : ''}`} onClick={() => flip('bt')}>
+          <span className="cc__tile-icon">&#x1F535;</span> Bluetooth
+        </button>
+      </div>
+      <button type="button" className={`cc__wide${t.dnd ? ' is-on' : ''}`} onClick={() => flip('dnd')}>
+        <span className="cc__tile-icon">&#x1F319;</span> Do Not Disturb
+      </button>
+      <div className="cc__card">
+        <div className="cc__label">Display</div>
+        <div className="cc__slider">
+          <span className="cc__sun">&#x2600;&#xFE0F;</span>
+          <input
+            type="range"
+            min="0.35"
+            max="1"
+            step="0.01"
+            value={brightness}
+            onChange={(e) => setBrightness(Number(e.target.value))}
+            aria-label="Brightness"
+          />
+        </div>
+      </div>
+      <div className="cc__card">
+        <div className="cc__label">Wallpaper</div>
+        <div className="cc__wall">
+          {WALLPAPERS.map((w) => (
+            <button
+              type="button"
+              key={w}
+              className={`cc__sw cc__sw--${w}${wallpaper === w ? ' is-active' : ''}`}
+              onClick={() => setWallpaper(w)}
+              aria-label={w}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // The macOS desktop shown after boot: wallpaper, translucent menu bar (with a
 // working Apple menu), and a magnifying Dock.
 export default function Desktop({ onRestart, onShutDown }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [tip, setTip] = useState(true)
   const menuRef = useRef(null)
+  const ccRef = useRef(null)
   const now = useClock()
 
-  // --- Window manager: open/focus/close app windows from the Dock ---
+  // --- Appearance + system UI ---
+  const [wallpaper, setWallpaper] = useState('dusk')
+  const [brightness, setBrightness] = useState(1)
+  const [ccOpen, setCcOpen] = useState(false)
+  const [spotOpen, setSpotOpen] = useState(false)
+  const [query, setQuery] = useState('')
+
+  // --- Window manager: open/focus/close/min/max app windows from the Dock ---
   const [wins, setWins] = useState([])
   const idRef = useRef(0)
   const zRef = useRef(10)
@@ -81,10 +140,18 @@ export default function Desktop({ onRestart, onShutDown }) {
   const closeWin = useCallback((id) => {
     setWins((ws) => ws.filter((w) => w.id !== id))
   }, [])
+  const minimizeWin = useCallback((id) => {
+    setWins((ws) => ws.map((w) => (w.id === id ? { ...w, min: true } : w)))
+  }, [])
+  const maximizeWin = useCallback((id) => {
+    setWins((ws) => ws.map((w) => (w.id === id ? { ...w, max: !w.max, z: ++zRef.current } : w)))
+  }, [])
   const openApp = useCallback((app) => {
     setWins((ws) => {
       const existing = ws.find((w) => w.app === app)
-      if (existing) return ws.map((w) => (w.id === existing.id ? { ...w, z: ++zRef.current } : w))
+      if (existing) {
+        return ws.map((w) => (w.id === existing.id ? { ...w, min: false, z: ++zRef.current } : w))
+      }
       const offset = (ws.length % 6) * 26
       return [
         ...ws,
@@ -93,6 +160,44 @@ export default function Desktop({ onRestart, onShutDown }) {
     })
   }, [])
   const openApps = new Set(wins.map((w) => w.app))
+
+  // Spotlight: searchable apps + system actions.
+  const allApps = useMemo(() => [...DOCK_APPS.map((a) => a.name), 'Trash'], [])
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const apps = (q ? allApps.filter((n) => n.toLowerCase().includes(q)) : allApps).map((name) => ({
+      label: name,
+      kind: 'Application',
+      run: () => openApp(name),
+    }))
+    const actions = [
+      { label: 'Restart', kind: 'System', run: onRestart },
+      { label: 'Shut Down', kind: 'System', run: onShutDown },
+    ].filter((a) => !q || a.label.toLowerCase().includes(q))
+    return [...apps, ...actions]
+  }, [query, allApps, openApp, onRestart, onShutDown])
+
+  const runSpot = useCallback((item) => {
+    setSpotOpen(false)
+    setQuery('')
+    item?.run?.()
+  }, [])
+
+  // ⌘/Ctrl+Space toggles Spotlight; Escape closes overlays.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.code === 'Space' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setSpotOpen((v) => !v)
+        setCcOpen(false)
+      } else if (e.key === 'Escape') {
+        setSpotOpen(false)
+        setCcOpen(false)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   useEffect(() => {
     if (!menuOpen) return undefined
@@ -109,13 +214,22 @@ export default function Desktop({ onRestart, onShutDown }) {
   }, [menuOpen])
 
   useEffect(() => {
+    if (!ccOpen) return undefined
+    const onDown = (e) => {
+      if (ccRef.current && !ccRef.current.contains(e.target)) setCcOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [ccOpen])
+
+  useEffect(() => {
     const t = setTimeout(() => setTip(false), 6000)
     return () => clearTimeout(t)
   }, [])
 
   return (
     <div className="desktop">
-      <Wallpaper />
+      <Wallpaper variant={wallpaper} />
 
       {/* Menu bar */}
       <div className="menubar">
@@ -175,12 +289,35 @@ export default function Desktop({ onRestart, onShutDown }) {
           <span className="menubar__status">
             <Wifi />
           </span>
-          <span className="menubar__status">
+          <button
+            type="button"
+            className="menubar__status menubar__btn"
+            onClick={() => {
+              setSpotOpen(true)
+              setCcOpen(false)
+            }}
+            aria-label="Spotlight Search"
+          >
             <Search />
-          </span>
-          <span className="menubar__status">
-            <ControlCenter />
-          </span>
+          </button>
+          <div className="menubar__cc" ref={ccRef}>
+            <button
+              type="button"
+              className="menubar__status menubar__btn"
+              onClick={() => setCcOpen((v) => !v)}
+              aria-label="Control Center"
+            >
+              <ControlCenter />
+            </button>
+            {ccOpen && (
+              <ControlCenterPanel
+                wallpaper={wallpaper}
+                setWallpaper={setWallpaper}
+                brightness={brightness}
+                setBrightness={setBrightness}
+              />
+            )}
+          </div>
           <span className="menubar__clock">{formatClock(now)}</span>
         </div>
       </div>
@@ -204,13 +341,57 @@ export default function Desktop({ onRestart, onShutDown }) {
             initialY={w.y}
             width={cfg.w}
             height={cfg.h}
+            minimized={w.min}
+            maximized={w.max}
             onClose={() => closeWin(w.id)}
+            onMinimize={() => minimizeWin(w.id)}
+            onMaximize={() => maximizeWin(w.id)}
             onFocus={() => focusWin(w.id)}
           >
             {cfg.render()}
           </Window>
         )
       })}
+
+      {/* Brightness dim (Control Center) */}
+      <div className="desktop__dim" style={{ opacity: 1 - brightness }} />
+
+      {/* Spotlight */}
+      {spotOpen && (
+        <div className="spot" onMouseDown={() => setSpotOpen(false)}>
+          <div className="spot__box" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="spot__search">
+              <Search />
+              <input
+                className="spot__input"
+                autoFocus
+                placeholder="Spotlight Search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') runSpot(results[0])
+                }}
+              />
+            </div>
+            {results.length > 0 && (
+              <div className="spot__list">
+                {results.slice(0, 7).map((r) => (
+                  <button
+                    type="button"
+                    className="spot__item"
+                    key={r.kind + r.label}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => runSpot(r)}
+                  >
+                    <span className="spot__label">{r.label}</span>
+                    <span className="spot__kind">{r.kind}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Dock */}
       <div className="dock">

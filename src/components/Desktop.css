@@ -643,6 +643,204 @@
   color: #8a8a8e;
 }
 
+/* Maximized window fills the desktop between the menu bar and the Dock. */
+.win--max {
+  left: 8px;
+  right: 8px;
+  top: 34px;
+  bottom: 86px;
+  width: auto;
+  height: auto;
+}
+
+/* Brightness dim — above wallpaper/windows/dock, below the menu bar so its
+   slider stays readable. */
+.desktop__dim {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  pointer-events: none;
+  z-index: 950;
+  transition: opacity 0.15s ease;
+}
+
+/* ---------- Menu-bar buttons + Control Center ---------- */
+.menubar__btn {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0 1px;
+}
+.menubar__btn:hover {
+  opacity: 0.75;
+}
+.menubar__cc {
+  position: relative;
+  display: inline-flex;
+}
+
+.cc {
+  position: absolute;
+  top: 30px;
+  right: 0;
+  width: 262px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 16px;
+  background: rgba(40, 40, 44, 0.62);
+  backdrop-filter: blur(34px) saturate(1.6);
+  -webkit-backdrop-filter: blur(34px) saturate(1.6);
+  border: 0.5px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.42);
+  color: #fff;
+  z-index: 1001;
+}
+.cc__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.cc__tile,
+.cc__wide {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.cc__tile.is-on,
+.cc__wide.is-on {
+  background: #2b7cff;
+}
+.cc__tile-icon {
+  font-size: 14px;
+}
+.cc__card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.cc__label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 7px;
+}
+.cc__slider {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.cc__slider input[type='range'] {
+  flex: 1;
+  accent-color: #fff;
+}
+.cc__wall {
+  display: flex;
+  gap: 8px;
+}
+.cc__sw {
+  flex: 1;
+  height: 32px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.cc__sw.is-active {
+  border-color: #fff;
+}
+.cc__sw--dusk {
+  background: linear-gradient(160deg, #46285f, #bd5a68, #f4ad74);
+}
+.cc__sw--night {
+  background: linear-gradient(160deg, #0b1330, #243b63, #46688a);
+}
+.cc__sw--aurora {
+  background: linear-gradient(160deg, #06303a, #1f8f6e, #86e0a8);
+}
+.cc__sw--graphite {
+  background: linear-gradient(160deg, #26282d, #45494f, #6e747c);
+}
+
+/* ---------- Spotlight ---------- */
+.spot {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 16vh;
+  background: rgba(0, 0, 0, 0.16);
+}
+.spot__box {
+  width: min(92vw, 560px);
+  border-radius: 14px;
+  background: rgba(46, 46, 50, 0.74);
+  backdrop-filter: blur(40px) saturate(1.7);
+  -webkit-backdrop-filter: blur(40px) saturate(1.7);
+  border: 0.5px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  color: #fff;
+}
+.spot__search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+}
+.spot__search svg {
+  width: 22px;
+  height: 22px;
+  color: rgba(255, 255, 255, 0.7);
+}
+.spot__input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 22px;
+  outline: none;
+}
+.spot__input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+.spot__list {
+  border-top: 0.5px solid rgba(255, 255, 255, 0.12);
+  max-height: 320px;
+  overflow: auto;
+  padding: 6px;
+}
+.spot__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.spot__item:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.spot__kind {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
 /* ---------- Phone layout ---------- */
 @media (max-width: 620px) {
   .win {

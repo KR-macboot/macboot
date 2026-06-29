@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 
-// A draggable macOS-style window: traffic-light controls + a title bar you grab to
-// move it, and a body that holds the app. Clicking anywhere focuses (raises) it.
+// A draggable macOS-style window. Traffic lights work: red closes, yellow
+// minimizes (hidden but kept mounted so app state survives), green toggles
+// maximize. Drag the title bar to move; double-click it to maximize/restore.
 export default function Window({
   title,
   z,
@@ -9,7 +10,11 @@ export default function Window({
   initialY,
   width = 460,
   height = 320,
+  minimized,
+  maximized,
   onClose,
+  onMinimize,
+  onMaximize,
   onFocus,
   children,
 }) {
@@ -37,16 +42,21 @@ export default function Window({
 
   const startDrag = (e) => {
     onFocus()
+    if (maximized) return
     drag.current = { sx: e.clientX, sy: e.clientY, ox: pos.x, oy: pos.y }
   }
 
+  const style = maximized
+    ? { zIndex: z }
+    : { left: pos.x, top: pos.y, width, height, zIndex: z }
+
   return (
     <div
-      className="win"
-      style={{ left: pos.x, top: pos.y, zIndex: z, width, height }}
+      className={`win${maximized ? ' win--max' : ''}`}
+      style={{ ...style, display: minimized ? 'none' : 'flex' }}
       onPointerDown={onFocus}
     >
-      <div className="win__bar" onPointerDown={startDrag}>
+      <div className="win__bar" onPointerDown={startDrag} onDoubleClick={onMaximize}>
         <div className="win__lights" onPointerDown={(e) => e.stopPropagation()}>
           <button
             type="button"
@@ -54,8 +64,18 @@ export default function Window({
             onClick={onClose}
             aria-label="Close window"
           />
-          <span className="win__light win__light--min" aria-hidden="true" />
-          <span className="win__light win__light--max" aria-hidden="true" />
+          <button
+            type="button"
+            className="win__light win__light--min"
+            onClick={onMinimize}
+            aria-label="Minimize window"
+          />
+          <button
+            type="button"
+            className="win__light win__light--max"
+            onClick={onMaximize}
+            aria-label="Maximize window"
+          />
         </div>
         <span className="win__title">{title}</span>
       </div>
