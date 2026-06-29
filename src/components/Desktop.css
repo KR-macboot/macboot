@@ -1,0 +1,318 @@
+.desktop {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  /* macOS Sonoma-ish wallpaper: bright at the top so the menu bar reads light. */
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 14%),
+    linear-gradient(
+      160deg,
+      #ff9d6c 0%,
+      #ff6f91 20%,
+      #c94bd1 44%,
+      #7b5be0 64%,
+      #3a6fd8 84%,
+      #1f9be0 100%
+    );
+  /* Fade up from the black boot screen → reads as a cross-fade to the desktop. */
+  animation: desktop-fade-in 0.9s ease both;
+}
+
+@keyframes desktop-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- Menu bar ---------- */
+.menubar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  font-size: 13px;
+  color: #1d1d1f;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(22px) saturate(1.6);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  box-shadow: inset 0 -0.5px 0 rgba(0, 0, 0, 0.08);
+  z-index: 30;
+}
+
+.menubar__left,
+.menubar__right {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.menubar__item {
+  padding: 1px 9px;
+  border-radius: 5px;
+  line-height: 22px;
+  cursor: default;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font-size: 13px;
+}
+
+.menubar__menu:hover,
+.menubar__app:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.menubar__app {
+  font-weight: 700;
+  cursor: default;
+}
+
+.menubar__menu {
+  cursor: default;
+}
+
+.menubar__apple {
+  position: relative;
+  display: flex;
+}
+
+.menubar__apple-btn {
+  padding: 1px 9px;
+  cursor: pointer;
+}
+
+.menubar__apple-btn.is-open,
+.menubar__apple-btn:hover {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.menubar__logo {
+  width: 13px;
+  height: 15px;
+  display: block;
+  transform: translateY(1px);
+}
+
+.menubar__right {
+  gap: 12px;
+  padding-right: 4px;
+}
+
+.menubar__status {
+  font-size: 13px;
+  filter: grayscale(0.2);
+  cursor: default;
+}
+
+.menubar__clock {
+  font-size: 13px;
+  font-weight: 500;
+  cursor: default;
+  white-space: nowrap;
+}
+
+/* ---------- Apple menu dropdown ---------- */
+.apple-menu {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  min-width: 220px;
+  padding: 5px;
+  border-radius: 8px;
+  background: rgba(245, 245, 247, 0.72);
+  backdrop-filter: blur(30px) saturate(1.8);
+  -webkit-backdrop-filter: blur(30px) saturate(1.8);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
+  animation: menu-pop 0.12s ease both;
+}
+
+@keyframes menu-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.apple-menu__row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #1d1d1f;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.apple-menu__row:hover:not(:disabled) {
+  background: #2b7cff;
+  color: #fff;
+}
+
+.apple-menu__row:disabled {
+  color: rgba(60, 60, 67, 0.45);
+  cursor: default;
+}
+
+.apple-menu__sep {
+  height: 1px;
+  margin: 5px 8px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+/* ---------- First-run tip ---------- */
+.desktop__tip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  animation: tip-fade 6s ease both;
+  pointer-events: none;
+}
+
+.desktop__tip-logo {
+  width: 11px;
+  height: 13px;
+  display: inline-block;
+}
+
+@keyframes tip-fade {
+  0% {
+    opacity: 0;
+  }
+  10%,
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- Dock ---------- */
+.dock {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+}
+
+.dock__panel {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(26px) saturate(1.7);
+  -webkit-backdrop-filter: blur(26px) saturate(1.7);
+  border: 0.5px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0.5px 0 rgba(255, 255, 255, 0.5);
+}
+
+.dock__app {
+  position: relative;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1.4);
+}
+
+.dock__app:hover {
+  transform: translateY(-9px) scale(1.18);
+}
+
+.dock__icon {
+  width: clamp(38px, 5vw, 50px);
+  height: clamp(38px, 5vw, 50px);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(20px, 2.6vw, 26px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.dock__icon--trash {
+  background: rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(6px);
+}
+
+.dock__dot {
+  width: 4px;
+  height: 4px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.dock__sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 4px 3px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.dock__tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  padding: 4px 10px;
+  border-radius: 7px;
+  font-size: 12px;
+  white-space: nowrap;
+  color: #1d1d1f;
+  background: rgba(245, 245, 247, 0.92);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.dock__app:hover .dock__tooltip {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop {
+    animation: none;
+  }
+  .dock__app,
+  .dock__tooltip {
+    transition: none;
+  }
+}
