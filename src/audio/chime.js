@@ -52,7 +52,59 @@ function getReverbIR(ctx, seconds = 2.2, decay = 3) {
   return ir
 }
 
-// Play the chime once on the given (running) AudioContext.
+// --- Real audio file (preferred) -------------------------------------------
+//
+// Synthesizing the exact Mac startup "bong" from oscillators is not convincing,
+// so by default we play a real recording if one is supplied. Drop an audio file
+// at `public/chime.<ext>` (mp3/m4a/wav/ogg) and it will be used; if none is
+// present we fall back to the synthesized approximation below. No audio is
+// committed to the repo — the file is user-supplied and git-ignored.
+const CHIME_FILES = ['chime.mp3', 'chime.m4a', 'chime.wav', 'chime.ogg']
+
+let chimeBufferPromise // undefined = not tried; resolves to AudioBuffer or null
+
+async function loadChimeBuffer(ctx) {
+  const base = import.meta.env.BASE_URL || '/'
+  for (const name of CHIME_FILES) {
+    try {
+      const res = await fetch(`${base}${name}`)
+      if (!res.ok) continue
+      const data = await res.arrayBuffer()
+      return await ctx.decodeAudioData(data)
+    } catch {
+      // file missing or not decodable in this browser — try the next candidate
+    }
+  }
+  return null
+}
+
+function getChimeBuffer(ctx) {
+  if (chimeBufferPromise === undefined) chimeBufferPromise = loadChimeBuffer(ctx)
+  return chimeBufferPromise
+}
+
+// Play the startup sound: a real recording from public/chime.* if available,
+// otherwise the synthesized approximation. Call from a user gesture (so the
+// AudioContext is unlocked). Returns immediately; playback starts when ready.
+export function playStartupSound(ctx) {
+  getChimeBuffer(ctx)
+    .then((buffer) => {
+      if (!buffer) {
+        playChime(ctx) // no file supplied → synthesized fallback
+        return
+      }
+      const src = ctx.createBufferSource()
+      src.buffer = buffer
+      const gain = ctx.createGain()
+      gain.gain.value = 0.85 // a little headroom in case the file is hot
+      src.connect(gain)
+      gain.connect(ctx.destination)
+      src.start()
+    })
+    .catch(() => playChime(ctx))
+}
+
+// Play the synthesized chime once on the given (running) AudioContext.
 // Returns the approximate total audible duration in seconds.
 export function playChime(ctx) {
   const t0 = ctx.currentTime + 0.03 // tiny lookahead so nothing is scheduled in the past

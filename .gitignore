@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# User-supplied startup-chime audio (keep the repo asset-free)
+public/chime.mp3
+public/chime.m4a
+public/chime.wav
+public/chime.ogg
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

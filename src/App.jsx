@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import OffScreen from './components/OffScreen'
 import BootSequence from './components/BootSequence'
 import Desktop from './components/Desktop'
-import { getAudioContext, playChime } from './audio/chime'
+import { getAudioContext, playStartupSound } from './audio/chime'
 import './App.css'
 
 const PHASE = { OFF: 'off', BOOTING: 'booting', DESKTOP: 'desktop' }
@@ -27,7 +27,7 @@ export default function App() {
       if (ctx) {
         const fire = () => {
           try {
-            playChime(ctx)
+            playStartupSound(ctx)
           } catch {
             /* audio unsupported — boot visually anyway */
           }
