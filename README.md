@@ -6,8 +6,9 @@ Power on and watch (and hear) a Mac start up: the startup **chime**, the Apple l
 fading in over black, the progress bar filling, and a hand-off to a macOS-style
 desktop with a live menu-bar clock and a magnifying Dock.
 
-**Turn it on** by clicking the power button (or pressing the spacebar) — or, on a
-phone, tap **Tilt to open** and tilt the device like lifting a MacBook lid.
+**Turn it on** the way you'd open a real MacBook: a closed 3D MacBook sits there,
+and you **drag/click/scroll up** to lift the lid (or tilt a phone) — the screen
+powers on, the chime plays, and it boots.
 
 The startup sound is **synthesized live with the Web Audio API** — no audio file.
 Each chord note is an FM "bell" voice (a sine carrier frequency-modulated by a second
@@ -33,8 +34,9 @@ Then open the printed local URL and power on.
   soft-attack/long-ring amplitude envelope, a procedural `ConvolverNode` reverb, and a
   `DynamicsCompressor` to prevent clipping. The tunable block up top is meant to be
   adjusted by ear. The `AudioContext` is unlocked from the power-on gesture.
-- **`src/components/OffScreen.jsx`** — the power screen: glowing power button (mouse +
-  keyboard) and, on touch devices, tilt-to-open via the Device Orientation API.
+- **`src/components/MacBook.jsx`** — the closed 3D MacBook (CSS 3D transforms). Drag,
+  click, scroll, or tilt to swing the lid open; the screen powers on and the chime
+  fires mid-swing, then it hands off to the boot sequence.
 - **`src/components/BootSequence.jsx`** — the black boot screen: the Apple logo fades
   in, then a pill progress bar fills (via `requestAnimationFrame`) and hands off.
 - **`src/components/Desktop.jsx`** / **`DockIcons.jsx`** — the macOS desktop: an

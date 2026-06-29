@@ -1,0 +1,261 @@
+.mb-scene {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(120% 120% at 50% 32%, #232327 0%, #0a0a0b 62%, #000 100%);
+  perspective: 1500px;
+  perspective-origin: 50% 42%;
+  touch-action: none;
+  cursor: grab;
+  outline: none;
+  overflow: hidden;
+  animation: mb-scene-in 0.6s ease both;
+}
+
+@keyframes mb-scene-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Hinge container. A slight rotateX gives the "looking down at a desk" view. */
+.mb {
+  position: relative;
+  width: 480px;
+  transform-style: preserve-3d;
+  transform: translateY(60px) rotateX(-14deg) scale(var(--mb-scale, 1));
+}
+
+/* ---------- Deck (keyboard half), laid flat from the hinge toward the viewer ---------- */
+.mb__deck {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 480px;
+  height: 330px;
+  transform-origin: top center;
+  transform: rotateX(90deg);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #b9bec6 0%, #a4aab3 55%, #969ca6 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 40px 60px rgba(0, 0, 0, 0.55);
+  padding: 16px 26px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Hidden while closed (a shut laptop shows only the lid); revealed as it opens. */
+  opacity: 0;
+  transition: opacity 0.45s ease 0.4s;
+}
+
+.mb.is-open .mb__deck {
+  opacity: 1;
+}
+
+.mb__keyboard {
+  width: 100%;
+  padding: 12px 10px;
+  border-radius: 9px;
+  background: #2a2b2e;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mb__key-row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.mb__key {
+  flex: 1 1 0;
+  height: 17px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #3b3c40, #313236);
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.mb__trackpad {
+  width: 168px;
+  height: 112px;
+  margin-top: 12px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #b3b8c0, #a6acb5);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12), inset 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+/* ---------- Lid (screen half), hinged at the deck's back edge ---------- */
+.mb__lid {
+  position: absolute;
+  left: 0;
+  top: -300px;
+  width: 480px;
+  height: 300px;
+  transform-origin: bottom center;
+  transform: rotateX(-103deg); /* closed: folded forward, shell facing up */
+  transform-style: preserve-3d;
+  transition: transform 1.25s cubic-bezier(0.45, 0.05, 0.2, 1);
+}
+
+.mb.is-open .mb__lid {
+  transform: rotateX(-13deg); /* open: upright, slightly reclined */
+}
+
+.mb__shell,
+.mb__screen {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Back of the lid: brushed aluminum + Apple logo (what you see when closed). */
+.mb__shell {
+  transform: rotateY(180deg);
+  background: linear-gradient(160deg, #c2c7ce 0%, #aab0b9 50%, #9aa0aa 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+.mb__shell-logo {
+  width: 84px;
+  height: auto;
+  transform: scaleX(-1); /* un-mirror through the rotateY(180) face */
+  opacity: 0.92;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
+}
+
+/* Front of the lid: the display. */
+.mb__screen {
+  flex-direction: column;
+  background: #050507;
+  border: 10px solid #0a0a0c;
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px #2a2a2e;
+  overflow: hidden;
+}
+
+.mb__notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 78px;
+  height: 12px;
+  transform: translateX(-50%);
+  background: #0a0a0c;
+  border-radius: 0 0 7px 7px;
+  z-index: 2;
+}
+
+.mb__display {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(120% 100% at 50% 45%, #15151a 0%, #050507 70%);
+  opacity: 0; /* powers on (is-lit) */
+  transition: opacity 0.5s ease;
+}
+
+.mb.is-lit .mb__display {
+  opacity: 1;
+}
+
+.mb__display-logo {
+  width: 58px;
+  height: auto;
+  opacity: 0;
+  transform: scale(0.96);
+  transition: opacity 0.7s ease 0.15s, transform 0.7s ease 0.15s;
+}
+
+.mb.is-lit .mb__display-logo {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ---------- Hint / controls ---------- */
+.mb-hint {
+  position: absolute;
+  bottom: 92px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.5);
+  animation: mb-hint-pulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes mb-hint-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.mb-tilt {
+  position: absolute;
+  bottom: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.mb-mute {
+  position: fixed;
+  bottom: 22px;
+  right: 22px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 17px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 560px) {
+  .mb {
+    --mb-scale: 0.62;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mb-scene {
+    animation: none;
+  }
+  .mb__lid,
+  .mb__display,
+  .mb__display-logo {
+    transition-duration: 0.2s;
+  }
+  .mb-hint {
+    animation: none;
+  }
+}
